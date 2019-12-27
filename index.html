@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <link rel="stylesheet" href="web/calendar.css">
+
+    <title>Comfy Calendar - Have a Fluffy Year!</title>
+  </head>
+  <body>
+    <div class="container py-5">
+      <!-- Calendar -->
+      <div class="float-right py-3 px-5"><img id="fluffington-img" src="web/instafLove_112.png" class="img-fluid"></div>
+      <div class="calendar shadow bg-fluffy p-5">
+        <div class="d-flex align-items-center">
+          <h2 class="month font-weight-bold mb-0 text-uppercase"></h2>
+        </div>
+        <p class="font-italic text-muted mb-5">Have a Fluffy Month!</p>
+        <ol class="day-names list-unstyled">
+          <li class="font-weight-bold text-uppercase">Sun</li>
+          <li class="font-weight-bold text-uppercase">Mon</li>
+          <li class="font-weight-bold text-uppercase">Tue</li>
+          <li class="font-weight-bold text-uppercase">Wed</li>
+          <li class="font-weight-bold text-uppercase">Thu</li>
+          <li class="font-weight-bold text-uppercase">Fri</li>
+          <li class="font-weight-bold text-uppercase">Sat</li>
+        </ol>
+
+        <ol class="days list-unstyled">
+        </ol>
+      </div>
+    </div>
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/luxon@1.21.3/build/global/luxon.min.js"></script>
+
+    <script>
+      const params = new URLSearchParams( location.search );
+      window.DateTime = luxon.DateTime;
+      $(document).ready(function() {
+        const images = [ "web/instafLove_112.png", "web/Peachy_Full.png", "web/waa_ton_112.png" ];
+        $("#fluffington-img").attr( "src", images[ Math.floor( Math.random() * images.length ) ] );
+        updateCalendar();
+      });
+
+      async function updateCalendar() {
+        let holidays = await fetch( "https://holidays.coding.garden/" ).then( r => r.json() );
+        // console.log( holidays );
+        let date = DateTime.local();
+        let month = parseInt( params.get( "month" ) || ( date.month ) );
+        let year = parseInt( params.get( "year" ) || ( date.year ) );
+        // console.log( month, year );
+        let info = getMonthInfo( month, year );
+        // console.log( info );
+        $(".month").text( `${info.month} ${info.year}` );
+        let dayOfWeek = 0;
+        for( let i = 0; i < info.startDayOfWeek; i++ ) {
+          let dateOfMonth = info.daysInPrevMonth - info.startDayOfWeek + i + 1;
+          $(".days").append( `<li class="outside"><div class="date">${dateOfMonth}</div></li>` );
+          dayOfWeek = ( dayOfWeek + 1 ) % 7;
+        }
+        for( let i = 0; i < info.daysInMonth; i++ ) {
+          if( date.year === year && date.month === month && date.day === i + 1 )  {
+            $(".days").append( `<li class="today"><div class="date">${i + 1}</div></li>` );
+          }
+          else if( holidays[ year ] && holidays[ year ][ month ] && holidays[ year ][ month ][ i + 1 ] ) {
+            holidayInfo = holidays[ year ][ month ][ i + 1 ][ 0 ].name;
+            $(".days").append( `<li class="holiday"><div class="date">${i + 1}</div><div class="event bg-warning">${holidayInfo}</div></li>` );
+          }
+          else if( dayOfWeek === 0 || dayOfWeek === 6 ) {
+            $(".days").append( `<li class="weekend"><div class="date">${i + 1}</div></li>` );
+          }
+          else {
+            $(".days").append( `<li><div class="date">${i + 1}</div></li>` );
+          }
+          dayOfWeek = ( dayOfWeek + 1 ) % 7;
+        }
+        for( let i = 0; i < 7 - info.endDayOfWeek - 1; i++ ) {
+          $(".days").append( `<li class="outside"><div class="date">${i + 1}</div></li>` );
+          dayOfWeek = ( dayOfWeek + 1 ) % 7;
+        }
+      }
+
+      function getMonthInfo( monthNum, yearNum ) {
+        let date = DateTime.local( yearNum, monthNum, 1 );//DateTime.local();
+        // date = date.startOf('month');
+        let month = date.toFormat( "MMMM" );
+        let startDayOfWeek = parseInt( date.toFormat( "c" ) ) % 7;
+        let year = date.year;
+        let end = date.endOf('month');
+        let endDayOfWeek = parseInt( end.toFormat( "c" ) ) % 7;
+        let daysInMonth = parseInt( end.toFormat( "d" ) );
+        date = date.minus({months: 1});
+        end = date.endOf('month');
+        let daysInPrevMonth = parseInt( end.toFormat( "d" ) );
+        return {
+          monthNum,
+          month,
+          year: yearNum,
+          startDayOfWeek,
+          endDayOfWeek,
+          daysInMonth,
+          daysInPrevMonth
+        };
+      }
+    </script>
+  </body>
+</html>
