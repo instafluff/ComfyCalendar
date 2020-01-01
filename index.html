@@ -68,18 +68,16 @@
           dayOfWeek = ( dayOfWeek + 1 ) % 7;
         }
         for( let i = 0; i < info.daysInMonth; i++ ) {
-          if( date.year === year && date.month === month && date.day === i + 1 )  {
-            $(".days").append( `<li class="today"><div class="date">${i + 1}</div></li>` );
-          }
-          else if( holidays[ year ] && holidays[ year ][ month ] && holidays[ year ][ month ][ i + 1 ] ) {
+          const isToday = date.year === year && date.month === month && date.day === i + 1;
+          if( holidays[ year ] && holidays[ year ][ month ] && holidays[ year ][ month ][ i + 1 ] ) {
             holidayInfo = holidays[ year ][ month ][ i + 1 ][ 0 ].name;
-            $(".days").append( `<li class="holiday"><div class="date">${i + 1}</div><div class="event bg-warning">${holidayInfo}</div></li>` );
+            $(".days").append( `<li class="${isToday ? 'today' : ''} holiday"><div class="date">${i + 1}</div><div class="event bg-warning">${holidayInfo}</div></li>` );
           }
           else if( dayOfWeek === 0 || dayOfWeek === 6 ) {
-            $(".days").append( `<li class="weekend"><div class="date">${i + 1}</div></li>` );
+            $(".days").append( `<li class="${isToday ? 'today' : ''} weekend"><div class="date">${i + 1}</div></li>` );
           }
           else {
-            $(".days").append( `<li><div class="date">${i + 1}</div></li>` );
+            $(".days").append( `<li ${isToday ? 'today' : ''}><div class="date">${i + 1}</div></li>` );
           }
           dayOfWeek = ( dayOfWeek + 1 ) % 7;
         }
